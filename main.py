@@ -108,10 +108,29 @@ def search_perso(player, name):
             return perso
 
 
+# Gestion des roles
 def search_role(name):
     for role in roles:
         if role.label == name:
             return role
+
+
+def list_roles():
+    for role in roles:
+        print(f"\n~~~{role.label.upper()}~~~\n"
+            f"{role.PV} points de vie (PV)\n"
+            f"{role.PA} points d'attaque (PA)\n"
+            f"{role.PM} points de mouvement (PM)\n"
+            f"{role.mana} points de magie (Mana)")
+        persos = role.personnages
+        to_print = "Personnages : "
+        if persos:
+            to_print += persos[0].name
+            for index in range(1, len(persos)):
+                to_print += f", {persos[index].name}"
+        else:
+            to_print += "Aucun"
+        print(to_print)
 
 
 def add_role(personnage):
@@ -205,6 +224,7 @@ def perso(player):
             "- Modifier un personnage (m)\n"
             "- Supprimer un personnage (s)\n"
             "- Liste des personnages (p)\n"
+            "- Voir les roles (r)\n"
             "- Jouer (j)\n"
             "- Quitter (q)\n")
         if choice == 'c':
@@ -223,6 +243,8 @@ def perso(player):
             delete_perso(active_player, search_perso(active_player, input("Quel est le nom du personnage que vous voulez supprimer ? ")))
         if choice == 'p':
             list_perso(active_player)
+        if choice == 'r':
+            list_roles()
         if choice == 'j' and personnage_played != default_perso:
             run(personnage_played)
 
