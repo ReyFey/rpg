@@ -223,7 +223,7 @@ def perso(player):
             delete_perso(active_player, search_perso(active_player, input("Quel est le nom du personnage que vous voulez supprimer ? ")))
         if choice == 'p':
             list_perso(active_player)
-        if choice == 'j':
+        if choice == 'j' and personnage_played != default_perso:
             run(personnage_played)
 
 
