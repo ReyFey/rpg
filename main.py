@@ -127,11 +127,16 @@ def fiche_perso(player, personnage):
     if not test_perso(player, personnage):
         print("Personnage non existant ou non possédé")
     else:
+        sexe = "aucun"
+        if personnage.sexe == 'H':
+            sexe = "Homme"
+        if personnage.sexe == 'F':
+            sexe = "Femme"
         print(
             f"Fiche perso\n"
             f"- Nom : {personnage.name}\n"
-            f"- Sexe : {personnage.sexe}\n"
-            f"- Age : {personnage.age}\n"
+            f"- Sexe : {sexe}\n"
+            f"- Age : {personnage.age} ans\n"
             f"- Role : {personnage.role.label}\n"
             f"PV={personnage.role.PV} PA={personnage.role.PA} PM={personnage.role.PM} Mana={personnage.role.mana}\n"
         )
