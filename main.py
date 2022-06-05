@@ -1,15 +1,54 @@
+from Database import *
 from Player import *
 from Personnage import *
 from Role import *
 
+try:
+    database = Database('localhost', '3306', 'dev', '', 'rpg')
+except:
+    print("Impossible de se connecter à la base de données\n")
+finally:
+    print("Base de données connectée\n")
+
 is_running = True
-dead_player = Player("dead", 0)
-default_player = Player("default", 0)
+dead_player = Player(0, "dead", 0)
+default_player = Player(0, "default", 0)
 active_player = default_player
-roles = [Role("mage", 50, 30, 60, 120), Role("assassin", 60, 80, 100, 10), Role("guerrier", 70, 50, 30, 20), Role("voleur", 40, 70, 100, 10), Role("tank", 150, 30, 10, 0), Role("healer", 30, 10, 60, 100)]
-default_perso = Personnage(active_player, "default", 'M', 0, Role("default", 0, 0, 0, 0))
+default_role = Role(0, "default", 0, 0, 0, 0)
+default_perso = Personnage(0, active_player, "default", 'M', 0, default_role)
 personnage_played = default_perso
 players = []
+personnages = []
+roles = []
+
+
+def fetch():
+    try:
+        for dbrole in database.execute("SELECT id, label, pv, pa, pm, mana FROM rpg.role"):
+            roles.append(Role(dbrole[0], dbrole[1], dbrole[2], dbrole[3], dbrole[4], dbrole[5]))
+        for dbuser in database.execute("SELECT id, name, age FROM rpg.player"):
+            players.append(Player(dbuser[0], dbuser[1], dbuser[2]))
+        for dbperso in database.execute("SELECT id, name, sexe, age, role_id, player_id FROM rpg.personnage"):
+            role_id = dbperso[4]
+            _role = default_role
+            if role_id:
+                for role in roles:
+                    if role.id == role_id:
+                        _role = role
+            user = dead_player
+            player_id = dbperso[5]
+            if player_id:
+                for player in players:
+                    if player.id == player_id:
+                        user = player
+            personnage = Personnage(dbperso[0], user, dbperso[1], dbperso[2], dbperso[3], _role)
+            personnages.append(personnage)
+            _role.personnages.append(personnage)
+            user.personnages.append(personnage)
+    except:
+        print("Les données n'ont pas pu se charger correctement\n")
+    finally:
+        print("Les données sont chargées\n")
 
 
 # CRUD Players
@@ -82,7 +121,9 @@ def delete_player(player):
 
 def logout():
     global active_player
+    global personnage_played
     active_player = default_player
+    personnage_played = default_perso
     print("Au revoir !")
 
 
@@ -115,14 +156,20 @@ def search_role(name):
             return role
 
 
-def list_roles():
+def list_roles(player):
+    if not roles:
+        print("\nAucun role\n")
+        return
     for role in roles:
         print(f"\n~~~{role.label.upper()}~~~\n"
             f"{role.PV} points de vie (PV)\n"
             f"{role.PA} points d'attaque (PA)\n"
             f"{role.PM} points de mouvement (PM)\n"
             f"{role.mana} points de magie (Mana)")
-        persos = role.personnages
+        persos = []
+        for perso in player.personnages:
+            if perso.role == role:
+                persos.append(perso)
         to_print = "Personnages : "
         if persos:
             to_print += persos[0].name
@@ -244,7 +291,7 @@ def perso(player):
         if choice == 'p':
             list_perso(active_player)
         if choice == 'r':
-            list_roles()
+            list_roles(active_player)
         if choice == 'j' and personnage_played != default_perso:
             run(personnage_played)
 
@@ -271,6 +318,7 @@ def menu():
 
 
 if __name__ == '__main__':
+    fetch()
     while is_running:
         choice = menu()
 

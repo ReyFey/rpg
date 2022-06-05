@@ -1,5 +1,6 @@
 class Role:
-    def __init__(self, label, pv, pa, pm, mana):
+    def __init__(self, id, label, pv, pa, pm, mana):
+        self.id = id
         self.label = label
         self.PV = pv
         self.PA = pa
