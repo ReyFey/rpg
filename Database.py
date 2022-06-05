@@ -36,6 +36,14 @@ class Database:
         self.cursor.executemany(sql_insert(table, properties, len(values)), values)
         self.connector.commit()
 
+    def update(self, table, properties, conditions, values):
+        sql = f"UPDATE rpg.{table} SET {properties[0]} = %s"
+        for index in range(1, len(properties)):
+            sql += f", {properties[1]} = %s"
+        sql += f" WHERE {conditions};"
+        self.cursor.execute(sql, values)
+        self.connector.commit()
+
     def result(self, request):
         self.cursor.execute(request)
         return self.cursor.fetchall()

@@ -92,9 +92,13 @@ def modify_player(player):
                  "- Modifier l'age (a)\n"
                  "- Quitter (q)\n")
         if choice == 'n':
-            player.name = input("Quel est votre nom ? ")
+            name = input("Quel est votre nom ? ")
+            player.name = name
+            database.update("player", ["name"], f"id = %s", (name, player.id))
         if choice == 'a':
-            player.age = input("Quel est votre age ? ")
+            age = int(input("Quel est votre age ? "))
+            player.age = age
+            database.update("player", ["age"], f"id = %s", (age, player.id))
 
 
 def connect_player():
