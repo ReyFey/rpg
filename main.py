@@ -24,11 +24,11 @@ roles = []
 
 def fetch():
     try:
-        for dbrole in database.execute("SELECT id, label, pv, pa, pm, mana FROM rpg.role"):
+        for dbrole in database.result("SELECT id, label, pv, pa, pm, mana FROM rpg.role"):
             roles.append(Role(dbrole[0], dbrole[1], dbrole[2], dbrole[3], dbrole[4], dbrole[5]))
-        for dbuser in database.execute("SELECT id, name, age FROM rpg.player"):
+        for dbuser in database.result("SELECT id, name, age FROM rpg.player"):
             players.append(Player(dbuser[0], dbuser[1], dbuser[2]))
-        for dbperso in database.execute("SELECT id, name, sexe, age, role_id, player_id FROM rpg.personnage"):
+        for dbperso in database.result("SELECT id, name, sexe, age, role_id, player_id FROM rpg.personnage"):
             role_id = dbperso[4]
             _role = default_role
             if role_id:
@@ -72,8 +72,11 @@ def test_player(name):
 def create_player():
     name = input("Quel es ton nom ? ")
     if not test_player(name):
-        player = Player(name, input("Quel age as-tu? "))
+        new_id = len(players) + 1
+        age = int(input("Quel age as-tu? "))
+        player = Player(new_id, name, age)
         players.append(player)
+        database.insert_one("player", ["id", "name", "age"], (new_id, name, age))
         print("Joueur créé\n")
         return player
     else:
@@ -214,7 +217,7 @@ def add_perso(player):
     role = search_role(input("Quel est le role de ton personnage ? "))
     if not search_perso(player, name):
         if role:
-            perso = Personnage(player, name, input("Votre personnage est-il un homme ou une femme (H/F) ? "), input("Quel est l'age de votre personnage ? "), role)
+            perso = Personnage(len(personnages)+1, player, name, input("Votre personnage est-il un homme ou une femme (H/F) ? "), input("Quel est l'age de votre personnage ? "), role)
             player.personnages.append(perso)
             role.personnages.append(perso)
             print("Personnage créé")
