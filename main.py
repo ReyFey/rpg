@@ -24,11 +24,11 @@ roles = []
 
 def fetch():
     try:
-        for dbrole in database.result("SELECT id, label, pv, pa, pm, mana FROM rpg.role"):
+        for dbrole in database.select("SELECT id, label, pv, pa, pm, mana FROM rpg.role"):
             roles.append(Role(dbrole[0], dbrole[1], dbrole[2], dbrole[3], dbrole[4], dbrole[5]))
-        for dbuser in database.result("SELECT id, name, age FROM rpg.player"):
+        for dbuser in database.select("SELECT id, name, age FROM rpg.player"):
             players.append(Player(dbuser[0], dbuser[1], dbuser[2]))
-        for dbperso in database.result("SELECT id, name, sexe, age, role_id, player_id FROM rpg.personnage"):
+        for dbperso in database.select("SELECT id, name, sexe, age, role_id, player_id FROM rpg.personnage"):
             role_id = dbperso[4]
             _role = default_role
             if role_id:
@@ -121,7 +121,10 @@ def delete_player(player):
         return
     choice = input("\nEtes vous sur de vouloir le supprimer (o/n) ? \n")
     if choice == 'o':
+        for perso in player.personnages:
+            delete_perso(player, perso)
         players.remove(player)
+        database.delete_by("player", "id = %s", (player.id,))
         print("Joueur supprimé\n")
         return player
 
@@ -253,14 +256,11 @@ def modify_perso(player, personnage):
 
 
 def delete_perso(player, personnage):
-    global personnage_played
-    if fiche_perso(player, personnage):
-        choice = input("Etes vous sur de vouloir le supprimer (o/n) ? ")
-        if choice == 'o':
-            player.personnages.remove(personnage)
-            personnage.player = dead_player
-            personnage_played = default_perso
-            print("Personnage supprimé\n")
+    if test_perso(player, personnage):
+        player.personnages.remove(personnage)
+        personnage.player = dead_player
+        database.delete_by("personnage", "id = %s", (personnage.id,))
+        print("Personnage supprimé\n")
 
 
 def perso(player):
@@ -294,7 +294,13 @@ def perso(player):
         if choice == 'm':
             modify_perso(active_player, search_perso(active_player, input("Quel est le nom du personnage que vous voulez modifier ? ")))
         if choice == 's':
-            delete_perso(active_player, search_perso(active_player, input("Quel est le nom du personnage que vous voulez supprimer ? ")))
+            perso = search_perso(active_player, input("Quel est le nom du personnage que vous voulez supprimer ? "))
+            if perso == personnage_played:
+                personnage_played = default_perso
+            fiche_perso(active_player, perso)
+            choice = input("Etes vous sur de vouloir le supprimer (o/n) ? ")
+            if choice == 'o':
+                delete_perso(active_player, perso)
         if choice == 'p':
             list_perso(active_player)
         if choice == 'r':

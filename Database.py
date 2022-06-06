@@ -28,6 +28,10 @@ class Database:
         )
         self.cursor = self.connector.cursor()
 
+    def select(self, request):
+        self.cursor.execute(request)
+        return self.cursor.fetchall()
+
     def insert_one(self, table, properties, values):
         self.cursor.execute(sql_insert(table, properties, len(values)), values)
         self.connector.commit()
@@ -44,6 +48,10 @@ class Database:
         self.cursor.execute(sql, values)
         self.connector.commit()
 
-    def result(self, request):
-        self.cursor.execute(request)
-        return self.cursor.fetchall()
+    def delete_all(self, table):
+        self.cursor.execute(f"DELETE FROM rpg.{table} WHERE 1")
+        self.connector.commit()
+
+    def delete_by(self, table, conditions, values):
+        self.cursor.execute(f"DELETE FROM rpg.{table} WHERE {conditions}", values)
+        self.connector.commit()
