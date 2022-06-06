@@ -281,6 +281,25 @@ def delete_perso(player, personnage):
         print("Personnage supprimé\n")
 
 
+def donate_perso(p_origin, p_target, personnage):
+    p_target = test_player(p_target)
+    if test_player(p_origin.name) and p_origin != default_player:
+        if p_target and p_target != default_player:
+            if personnage != default_perso and personnage in p_origin.personnages:
+                p_origin.personnages.remove(personnage)
+                personnage.player = dead_player
+                p_target.personnages.append(personnage)
+                personnage.player = p_target
+                database.update("personnage", ["player_id"], f"id = %s", (p_target.id, personnage.id))
+                print("Personnage donné avec succès")
+            else:
+                print("Vous ne pouvez pas donner ce personnage")
+        else:
+            print("Le joueur cible n'existe pas")
+    else:
+        print("Le joueur donateur n'existe pas")
+
+
 def perso(player):
     global personnage_played
     choice = -1
@@ -293,6 +312,7 @@ def perso(player):
             "- Choisir un personnage (c)\n"
             "- Ajouter un personnage (a)\n"
             "- Voir un personnage (v)\n"
+            "- Donner un personnage (d)\n"
             "- Modifier un personnage (m)\n"
             "- Supprimer un personnage (s)\n"
             "- Liste des personnages (p)\n"
@@ -309,6 +329,8 @@ def perso(player):
             add_perso(active_player)
         if choice == 'v':
             fiche_perso(active_player, search_perso(active_player, input("Quel est le nom du personnage que vous voulez voir ? ")))
+        if choice == 'd':
+            donate_perso(active_player, input("Quel est le nom du joueur à qui vous voulez donner un personnage ? "), search_perso(active_player, input("Quel est le nom du personnage que vous voulez donner ? ")))
         if choice == 'm':
             modify_perso(active_player, search_perso(active_player, input("Quel est le nom du personnage que vous voulez modifier ? ")))
         if choice == 's':
