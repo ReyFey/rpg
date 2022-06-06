@@ -7,3 +7,7 @@ class Personnage(Person):
         self.player = player
         self.sexe = sexe
         self.role = role
+        self.pv = role.pv
+        self.pa = role.pa
+        self.pm = role.pm
+        self.mana = role.mana

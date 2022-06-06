@@ -34,6 +34,10 @@ create table if not exists personnage
     name      varchar(64) not null,
     sexe      char        null,
     age       int         null,
+    pv        int         null,
+    pa        int         null,
+    pm        int         null,
+    mana      int         null,
     constraint personnage_id_uindex
         unique (id),
     constraint personnage_player_id_fk

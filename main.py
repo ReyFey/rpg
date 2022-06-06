@@ -32,7 +32,7 @@ def fetch():
             roles.append(Role(dbrole[0], dbrole[1], dbrole[2], dbrole[3], dbrole[4], dbrole[5]))
         for dbuser in database.select("SELECT id, name, age FROM rpg.player"):
             players.append(Player(dbuser[0], dbuser[1], dbuser[2]))
-        for dbperso in database.select("SELECT id, name, sexe, age, role_id, player_id FROM rpg.personnage"):
+        for dbperso in database.select("SELECT id, name, sexe, age, role_id, player_id, pv, pa, pm, mana FROM rpg.personnage"):
             role_id = dbperso[4]
             _role = default_role
             if role_id:
@@ -46,6 +46,10 @@ def fetch():
                     if player.id == player_id:
                         user = player
             personnage = Personnage(dbperso[0], user, dbperso[1], dbperso[2], dbperso[3], _role)
+            personnage.pv = dbperso[6]
+            personnage.pa = dbperso[7]
+            personnage.pm = dbperso[8]
+            personnage.mana = dbperso[9]
             personnages.append(personnage)
             _role.personnages.append(personnage)
             user.personnages.append(personnage)
@@ -179,9 +183,9 @@ def list_roles(player):
         return False
     for role in roles:
         print(f"\n~~~{role.label.upper()}~~~\n"
-            f"{role.PV} points de vie (PV)\n"
-            f"{role.PA} points d'attaque (PA)\n"
-            f"{role.PM} points de mouvement (PM)\n"
+            f"{role.pv} points de vie (PV)\n"
+            f"{role.pa} points d'attaque (PA)\n"
+            f"{role.pm} points de mouvement (PM)\n"
             f"{role.mana} points de magie (Mana)")
         persos = []
         for perso in player.personnages:
@@ -213,7 +217,7 @@ def fiche_perso(player, personnage):
             f"- Sexe : {sexe}\n"
             f"- Age : {personnage.age} ans\n"
             f"- Role : {personnage.role.label}\n"
-            f"PV={personnage.role.PV} PA={personnage.role.PA} PM={personnage.role.PM} Mana={personnage.role.mana}\n"
+            f"PV={personnage.pv} PA={personnage.pa} PM={personnage.pm} Mana={personnage.mana}\n"
         )
         return personnage
 
@@ -233,8 +237,8 @@ def add_perso(player):
                 if not active_player == default_player:
                     database.insert_one(
                         "personnage",
-                        ["id", "player_id", "role_id", "name", "sexe", "age"],
-                        (len(personnages)+1, player.id, role.id, name, sexe, age)
+                        ["id", "player_id", "role_id", "name", "sexe", "age", "pv", "pa", "pm", "mana"],
+                        (len(personnages)+1, player.id, role.id, name, sexe, age, role.pv, role.pa, role.pm, role.mana)
                     )
                 print("Personnage créé")
                 return perso
