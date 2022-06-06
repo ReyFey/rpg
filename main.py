@@ -4,6 +4,7 @@ from Player import *
 from Personnage import *
 from Role import *
 
+# Database
 with open('database.json', 'r') as database_file:
     database_data = json.load(database_file)
 
@@ -145,32 +146,7 @@ def logout():
     print("Au revoir !")
 
 
-# CRUD Persos
-def list_perso(player):
-    if not player.personnages:
-        print("\nAucun personnage")
-        return False
-    print("Liste de vos personnages :")
-    for perso in player.personnages:
-        if perso.player == player:
-            print(f"-> {perso.name}")
-
-
-def test_perso(player, personnage):
-    if not personnage or personnage not in personnages:
-        return False
-    if personnage.player == player:
-        if personnage in player.personnages:
-            return personnage
-
-
-def search_perso(player, name):
-    for perso in player.personnages:
-        if perso.name == name:
-            return perso
-
-
-# Gestion des roles
+# Roles
 def search_role(name):
     for role in roles:
         if role.label == name:
@@ -199,6 +175,31 @@ def list_roles(player):
         else:
             to_print += "Aucun"
         print(to_print)
+
+
+# CRUD Personnages
+def list_perso(player):
+    if not player.personnages:
+        print("\nAucun personnage")
+        return False
+    print("Liste de vos personnages :")
+    for perso in player.personnages:
+        if perso.player == player:
+            print(f"-> {perso.name}")
+
+
+def test_perso(player, personnage):
+    if not personnage or personnage not in personnages:
+        return False
+    if personnage.player == player:
+        if personnage in player.personnages:
+            return personnage
+
+
+def search_perso(player, name):
+    for perso in player.personnages:
+        if perso.name == name:
+            return perso
 
 
 def fiche_perso(player, personnage):
