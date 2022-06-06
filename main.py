@@ -1,14 +1,18 @@
+import json
 from Database import *
 from Player import *
 from Personnage import *
 from Role import *
 
+with open('database.json', 'r') as database_file:
+    database_data = json.load(database_file)
+
 try:
-    database = Database('localhost', '3306', 'dev', '', 'rpg')
+    database = Database(database_data["host"], database_data["port"], database_data["user"], database_data["password"], database_data["name"])
 except:
-    print("Impossible de se connecter à la base de données\n")
-finally:
-    print("Base de données connectée\n")
+    print("Impossible de se connecter à la base de données")
+else:
+    print("Base de données connectée")
 
 is_running = True
 dead_player = Player(0, "dead", 0)
@@ -47,7 +51,7 @@ def fetch():
             user.personnages.append(personnage)
     except:
         print("Les données n'ont pas pu se charger correctement\n")
-    finally:
+    else:
         print("Les données sont chargées\n")
 
 
