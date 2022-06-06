@@ -107,11 +107,11 @@ def modify_player(player):
         if choice == 'n':
             name = input("Quel est votre nom ? ")
             player.name = name
-            database.update("player", ["name"], f"id = %s", (name, player.id))
+            database.update_one("player", ["name"], f"id = %s", (name, player.id))
         if choice == 'a':
             age = int(input("Quel est votre age ? "))
             player.age = age
-            database.update("player", ["age"], f"id = %s", (age, player.id))
+            database.update_one("player", ["age"], f"id = %s", (age, player.id))
 
 
 def delete_player(player):
@@ -270,20 +270,20 @@ def modify_perso(player, personnage):
                 name = input("Quel est son nom ? ")
                 personnage.name = name
                 if not active_player == default_player:
-                    database.update("personnage", ["name"], f"id = %s", (name, personnage.id))
+                    database.update_one("personnage", ["name"], f"id = %s", (name, personnage.id))
             if choice == 's':
                 sexe = input("Quel est son sexe (H/F) ? ")
                 if sexe == 'H' or sexe == 'F':
                     personnage.sexe = sexe
                     if not active_player == default_player:
-                        database.update("personnage", ["sexe"], f"id = %s", (sexe, personnage.id))
+                        database.update_one("personnage", ["sexe"], f"id = %s", (sexe, personnage.id))
                 else:
                     print("Veuillez bien respecter la syntaxe demandée (H/F)\n")
             if choice == 'a':
                 age = int(input("Quel est son age ? "))
                 personnage.age = age
                 if not active_player == default_player:
-                    database.update("personnage", ["age"], f"id = %s", (age, personnage.id))
+                    database.update_one("personnage", ["age"], f"id = %s", (age, personnage.id))
 
 
 def delete_perso(player, personnage):
@@ -305,7 +305,7 @@ def donate_perso(p_origin, p_target, personnage):
                 personnage.player = dead_player
                 p_target.personnages.append(personnage)
                 personnage.player = p_target
-                database.update("personnage", ["player_id"], f"id = %s", (p_target.id, personnage.id))
+                database.update_one("personnage", ["player_id"], f"id = %s", (p_target.id, personnage.id))
                 print("Personnage donné avec succès")
             else:
                 print("Vous ne pouvez pas donner ce personnage")

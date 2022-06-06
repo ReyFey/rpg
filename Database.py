@@ -51,7 +51,7 @@ class Database:
         self.cursor.executemany(self.sql_insert(table, properties, len(values)), values)
         self.connector.commit()
 
-    def update(self, table, properties, conditions, values):
+    def update_one(self, table, properties, conditions, values):
         sql = f"UPDATE {self.name}.{table} SET {properties[0]} = %s"
         for index in range(1, len(properties)):
             sql += f", {properties[1]} = %s"
@@ -59,14 +59,26 @@ class Database:
         self.cursor.execute(sql, values)
         self.connector.commit()
 
+    def update_many(self, table, properties, conditions, values):
+        sql = f"UPDATE {self.name}.{table} SET {properties[0]} = %s"
+        for index in range(1, len(properties)):
+            sql += f", {properties[1]} = %s"
+        sql += f" WHERE {conditions};"
+        self.cursor.executemany(sql, values)
+        self.connector.commit()
+
+    def delete_by(self, table, conditions, values):
+        self.cursor.execute(f"DELETE FROM {self.name}.{table} WHERE {conditions}", values)
+        self.connector.commit()
+
+    def delete_many_by(self, table, conditions, values):
+        self.cursor.executemany(f"DELETE FROM {self.name}.{table} WHERE {conditions}", values)
+        self.connector.commit()
+
     def clear_table(self, table):
         self.cursor.execute(f"DELETE FROM {self.name}.{table} WHERE 1")
         self.connector.commit()
 
     def clear_all(self):
-        # TODO : Clear all tables by select
-        pass
-
-    def delete_by(self, table, conditions, values):
-        self.cursor.execute(f"DELETE FROM {self.name}.{table} WHERE {conditions}", values)
+        self.cursor.execute(f"DELETE FROM {self.name} WHERE 1")
         self.connector.commit()
