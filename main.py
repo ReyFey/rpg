@@ -101,19 +101,6 @@ def modify_player(player):
             database.update("player", ["age"], f"id = %s", (age, player.id))
 
 
-def connect_player():
-    global active_player
-    name = input("Quel est votre nom ? ")
-    test = test_player(name)
-    if not test:
-        print("Ce compte n'existe pas\n")
-        return
-    else:
-        active_player = test
-        print(f"\nBonjour {active_player.name} !")
-        return active_player
-
-
 def delete_player(player):
     logout()
     if not test_player(player.name):
@@ -127,6 +114,19 @@ def delete_player(player):
         database.delete_by("player", "id = %s", (player.id,))
         print("Joueur supprimé\n")
         return player
+
+
+def connect_player():
+    global active_player
+    name = input("Quel est votre nom ? ")
+    test = test_player(name)
+    if not test:
+        print("Ce compte n'existe pas\n")
+        return
+    else:
+        active_player = test
+        print(f"\nBonjour {active_player.name} !")
+        return active_player
 
 
 def logout():
@@ -148,6 +148,8 @@ def list_perso(player):
 
 
 def test_perso(player, personnage):
+    if not personnage or personnage not in personnages:
+        return
     if personnage.player == player:
         if personnage in player.personnages:
             return personnage
@@ -190,15 +192,6 @@ def list_roles(player):
         print(to_print)
 
 
-def add_role(personnage):
-    role = search_role(input("Quel est le role de ton personnage ? "))
-    if role:
-        personnage.role = role
-        role.personnages.append(personnage)
-    else:
-        print("Ce role n'existe pas\n")
-
-
 def fiche_perso(player, personnage):
     if not test_perso(player, personnage):
         print("Personnage non existant ou non possédé")
@@ -224,11 +217,21 @@ def add_perso(player):
     role = search_role(input("Quel est le role de ton personnage ? "))
     if not search_perso(player, name):
         if role:
-            perso = Personnage(len(personnages)+1, player, name, input("Votre personnage est-il un homme ou une femme (H/F) ? "), input("Quel est l'age de votre personnage ? "), role)
-            player.personnages.append(perso)
-            role.personnages.append(perso)
-            print("Personnage créé")
-            return perso
+            sexe = input("Votre personnage est-il un homme ou une femme (H/F) ? ")
+            if sexe == 'H' or sexe == 'F':
+                age = int(input("Quel est l'age de votre personnage ? "))
+                perso = Personnage(len(personnages)+1, player, name, sexe, age, role)
+                player.personnages.append(perso)
+                role.personnages.append(perso)
+                database.insert_one(
+                    "personnage",
+                    ["id", "player_id", "role_id", "name", "sexe", "age"],
+                    (len(personnages)+1, player.id, role.id, name, sexe, age)
+                )
+                print("Personnage créé")
+                return perso
+            else:
+                print("Veuillez bien respecter la syntaxe demandée (H/F)\n")
         else:
             print("Ce role n'existe pas\n")
     else:
@@ -243,16 +246,22 @@ def modify_perso(player, personnage):
                        "- Modifier le nom (n)\n"
                        "- Modifier le sexe (s)\n"
                        "- Modifier l'age (a)\n"
-                       "- Modifier le role (r)\n"
                        "- Retour (b)\n")
         if choice == 'n':
-            personnage.name = input("Quel est son nom ? ")
+            name = input("Quel est son nom ? ")
+            personnage.name = name
+            database.update("personnage", ["name"], f"id = %s", (name, personnage.id))
         if choice == 's':
-            personnage.sexe = input("Quel est son sexe (H/F) ? ")
+            sexe = input("Quel est son sexe (H/F) ? ")
+            if sexe == 'H' or sexe == 'F':
+                personnage.sexe = sexe
+                database.update("personnage", ["sexe"], f"id = %s", (sexe, personnage.id))
+            else:
+                print("Veuillez bien respecter la syntaxe demandée (H/F)\n")
         if choice == 'a':
-            personnage.age = input("Quel est son age ? ")
-        if choice == 'r':
-            add_role(personnage)
+            age = int(input("Quel est son age ? "))
+            personnage.age = age
+            database.update("personnage", ["age"], f"id = %s", (age, personnage.id))
 
 
 def delete_perso(player, personnage):
