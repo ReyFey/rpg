@@ -56,7 +56,7 @@ def list_players():
     if not players:
         print("\nAucun joueur\n")
         return
-
+    print("Liste des joueurs :")
     for player in players:
         print(f"-> {player.name}")
     print("")
@@ -105,7 +105,7 @@ def delete_player(player):
     logout()
     if not test_player(player.name):
         print("Ce joueur n'existe pas\n")
-        return
+        return False
     choice = input("\nEtes vous sur de vouloir le supprimer (o/n) ? \n")
     if choice == 'o':
         for perso in player.personnages:
@@ -141,7 +141,8 @@ def logout():
 def list_perso(player):
     if not player.personnages:
         print("\nAucun personnage")
-        return
+        return False
+    print("Liste de vos personnages :")
     for perso in player.personnages:
         if perso.player == player:
             print(f"-> {perso.name}")
@@ -149,7 +150,7 @@ def list_perso(player):
 
 def test_perso(player, personnage):
     if not personnage or personnage not in personnages:
-        return
+        return False
     if personnage.player == player:
         if personnage in player.personnages:
             return personnage
@@ -171,7 +172,7 @@ def search_role(name):
 def list_roles(player):
     if not roles:
         print("\nAucun role\n")
-        return
+        return False
     for role in roles:
         print(f"\n~~~{role.label.upper()}~~~\n"
             f"{role.PV} points de vie (PV)\n"
@@ -195,6 +196,7 @@ def list_roles(player):
 def fiche_perso(player, personnage):
     if not test_perso(player, personnage):
         print("Personnage non existant ou non possédé")
+        return False
     else:
         sexe = "aucun"
         if personnage.sexe == 'H':
@@ -221,13 +223,15 @@ def add_perso(player):
             if sexe == 'H' or sexe == 'F':
                 age = int(input("Quel est l'age de votre personnage ? "))
                 perso = Personnage(len(personnages)+1, player, name, sexe, age, role)
+                personnages.append(perso)
                 player.personnages.append(perso)
                 role.personnages.append(perso)
-                database.insert_one(
-                    "personnage",
-                    ["id", "player_id", "role_id", "name", "sexe", "age"],
-                    (len(personnages)+1, player.id, role.id, name, sexe, age)
-                )
+                if not active_player == default_player:
+                    database.insert_one(
+                        "personnage",
+                        ["id", "player_id", "role_id", "name", "sexe", "age"],
+                        (len(personnages)+1, player.id, role.id, name, sexe, age)
+                    )
                 print("Personnage créé")
                 return perso
             else:
@@ -239,36 +243,41 @@ def add_perso(player):
 
 
 def modify_perso(player, personnage):
-    fiche_perso(player, personnage)
-    choice = -1
-    while choice != 'b':
-        choice = input("\nMODIFIER LE PERSONNAGE\n"
-                       "- Modifier le nom (n)\n"
-                       "- Modifier le sexe (s)\n"
-                       "- Modifier l'age (a)\n"
-                       "- Retour (b)\n")
-        if choice == 'n':
-            name = input("Quel est son nom ? ")
-            personnage.name = name
-            database.update("personnage", ["name"], f"id = %s", (name, personnage.id))
-        if choice == 's':
-            sexe = input("Quel est son sexe (H/F) ? ")
-            if sexe == 'H' or sexe == 'F':
-                personnage.sexe = sexe
-                database.update("personnage", ["sexe"], f"id = %s", (sexe, personnage.id))
-            else:
-                print("Veuillez bien respecter la syntaxe demandée (H/F)\n")
-        if choice == 'a':
-            age = int(input("Quel est son age ? "))
-            personnage.age = age
-            database.update("personnage", ["age"], f"id = %s", (age, personnage.id))
+    if fiche_perso(player, personnage):
+        choice = -1
+        while choice != 'b':
+            choice = input("\nMODIFIER LE PERSONNAGE\n"
+                           "- Modifier le nom (n)\n"
+                           "- Modifier le sexe (s)\n"
+                           "- Modifier l'age (a)\n"
+                           "- Retour (b)\n")
+            if choice == 'n':
+                name = input("Quel est son nom ? ")
+                personnage.name = name
+                if not active_player == default_player:
+                    database.update("personnage", ["name"], f"id = %s", (name, personnage.id))
+            if choice == 's':
+                sexe = input("Quel est son sexe (H/F) ? ")
+                if sexe == 'H' or sexe == 'F':
+                    personnage.sexe = sexe
+                    if not active_player == default_player:
+                        database.update("personnage", ["sexe"], f"id = %s", (sexe, personnage.id))
+                else:
+                    print("Veuillez bien respecter la syntaxe demandée (H/F)\n")
+            if choice == 'a':
+                age = int(input("Quel est son age ? "))
+                personnage.age = age
+                if not active_player == default_player:
+                    database.update("personnage", ["age"], f"id = %s", (age, personnage.id))
 
 
 def delete_perso(player, personnage):
     if test_perso(player, personnage):
+        personnages.remove(personnage)
         player.personnages.remove(personnage)
         personnage.player = dead_player
-        database.delete_by("personnage", "id = %s", (personnage.id,))
+        if not active_player == default_player:
+            database.delete_by("personnage", "id = %s", (personnage.id,))
         print("Personnage supprimé\n")
 
 
@@ -306,10 +315,10 @@ def perso(player):
             perso = search_perso(active_player, input("Quel est le nom du personnage que vous voulez supprimer ? "))
             if perso == personnage_played:
                 personnage_played = default_perso
-            fiche_perso(active_player, perso)
-            choice = input("Etes vous sur de vouloir le supprimer (o/n) ? ")
-            if choice == 'o':
-                delete_perso(active_player, perso)
+            if fiche_perso(active_player, perso):
+                choice = input("Etes vous sur de vouloir le supprimer (o/n) ? ")
+                if choice == 'o':
+                    delete_perso(active_player, perso)
         if choice == 'p':
             list_perso(active_player)
         if choice == 'r':
