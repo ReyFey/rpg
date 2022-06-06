@@ -17,8 +17,20 @@ class Database:
         )
         self.cursor = self.connector.cursor()
 
-    def select(self, request):
-        self.cursor.execute(request)
+    def select(self, table, properties):
+        sql = f"SELECT {properties[0]}"
+        for index in range(1, len(properties)):
+            sql += f", {properties[index]}"
+        sql += f" FROM {self.name}.{table};"
+        self.cursor.execute(sql)
+        return self.cursor.fetchall()
+
+    def select_by(self, table, properties, conditions, values):
+        sql = f"SELECT {properties[0]}"
+        for index in range(1, len(properties)):
+            sql += f", {properties[index]}"
+        sql += f" FROM {self.name}.{table} WHERE {conditions};"
+        self.cursor.execute(sql, values)
         return self.cursor.fetchall()
 
     def sql_insert(self, table, properties, nb_values):
