@@ -16,6 +16,11 @@ class Database:
             database=name
         )
         self.cursor = self.connector.cursor()
+        self.tables = self.tables()
+
+    def tables(self):
+        self.cursor.execute("SHOW TABLES;")
+        return self.cursor.fetchall()
 
     def select(self, table, properties):
         sql = f"SELECT {properties[0]}"
@@ -68,17 +73,29 @@ class Database:
         self.connector.commit()
 
     def delete_by(self, table, conditions, values):
-        self.cursor.execute(f"DELETE FROM {self.name}.{table} WHERE {conditions}", values)
+        self.cursor.execute(f"DELETE FROM {self.name}.{table} WHERE {conditions};", values)
         self.connector.commit()
 
     def delete_many_by(self, table, conditions, values):
-        self.cursor.executemany(f"DELETE FROM {self.name}.{table} WHERE {conditions}", values)
+        self.cursor.executemany(f"DELETE FROM {self.name}.{table} WHERE {conditions};", values)
         self.connector.commit()
 
     def clear_table(self, table):
-        self.cursor.execute(f"DELETE FROM {self.name}.{table} WHERE 1")
+        self.cursor.execute(f"TRUNCATE TABLE {self.name}.{table};")
         self.connector.commit()
 
     def clear_all(self):
-        self.cursor.execute(f"DELETE FROM {self.name} WHERE 1")
+        self.cursor.execute("ALTER TABLE rpg.personnage DROP CONSTRAINT IF EXISTS personnage_player_id_fk;")
+        self.cursor.execute("ALTER TABLE rpg.personnage DROP CONSTRAINT IF EXISTS personnage_role_id_fk;")
+        for result in self.tables:
+            for table in result:
+                self.cursor.execute(f"TRUNCATE TABLE {table};")
+        self.cursor.execute("ALTER TABLE rpg.personnage "
+                            "ADD CONSTRAINT personnage_player_id_fk "
+                            "FOREIGN KEY (player_id) "
+                            "REFERENCES player (id);")
+        self.cursor.execute("ALTER TABLE rpg.personnage "
+                            "ADD CONSTRAINT personnage_role_id_fk "
+                            "FOREIGN KEY (role_id) "
+                            "REFERENCES role (id);")
         self.connector.commit()
