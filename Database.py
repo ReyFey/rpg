@@ -85,17 +85,17 @@ class Database:
         self.connector.commit()
 
     def clear_all(self):
-        self.cursor.execute("ALTER TABLE rpg.personnage DROP CONSTRAINT IF EXISTS personnage_player_id_fk;")
-        self.cursor.execute("ALTER TABLE rpg.personnage DROP CONSTRAINT IF EXISTS personnage_role_id_fk;")
+        self.cursor.execute("ALTER TABLE rpg.character DROP CONSTRAINT IF EXISTS character_player_id_fk;")
+        self.cursor.execute("ALTER TABLE rpg.character DROP CONSTRAINT IF EXISTS character_role_id_fk;")
         for result in self.tables:
             for table in result:
                 self.cursor.execute(f"TRUNCATE TABLE {table};")
-        self.cursor.execute("ALTER TABLE rpg.personnage "
-                            "ADD CONSTRAINT personnage_player_id_fk "
+        self.cursor.execute("ALTER TABLE rpg.character "
+                            "ADD CONSTRAINT character_player_id_fk "
                             "FOREIGN KEY (player_id) "
                             "REFERENCES player (id);")
-        self.cursor.execute("ALTER TABLE rpg.personnage "
-                            "ADD CONSTRAINT personnage_role_id_fk "
+        self.cursor.execute("ALTER TABLE rpg.character "
+                            "ADD CONSTRAINT character_role_id_fk "
                             "FOREIGN KEY (role_id) "
                             "REFERENCES role (id);")
         self.connector.commit()

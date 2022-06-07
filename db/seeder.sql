@@ -25,7 +25,7 @@ create table if not exists role
         unique (id)
 );
 
-create table if not exists personnage
+create table if not exists `character`
 (
     id        int auto_increment
         primary key,
@@ -38,11 +38,11 @@ create table if not exists personnage
     pa        int         null,
     pm        int         null,
     mana      int         null,
-    constraint personnage_id_uindex
+    constraint character_id_uindex
         unique (id),
-    constraint personnage_player_id_fk
+    constraint character_player_id_fk
         foreign key (player_id) references player (id),
-    constraint personnage_role_id_fk
+    constraint character_role_id_fk
         foreign key (role_id) references role (id)
 );
 

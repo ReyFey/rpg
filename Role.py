@@ -6,4 +6,4 @@ class Role:
         self.pa = pa
         self.pm = pm
         self.mana = mana
-        self.personnages = []
+        self.characters = []
