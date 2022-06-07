@@ -68,7 +68,7 @@ def fetch():
 def list_players():
     if not players:
         print("\nAucun joueur\n")
-        return
+        return False
     print("Liste des joueurs :")
     for player in players:
         print(f"-> {player.name}")
@@ -79,21 +79,20 @@ def test_player(name):
     for all_player in players:
         if all_player.name == name:
             return all_player
-            break
 
 
 def create_player():
     name = input("Quel es ton nom ? ")
-    if not test_player(name):
-        new_id = len(players) + 1
-        age = int(input("Quel age as-tu? "))
-        player = Player(new_id, name, age)
-        players.append(player)
-        database.insert_one("player", ["id", "name", "age"], (new_id, name, age))
-        print("Joueur créé\n")
-        return player
-    else:
+    if test_player(name):
         print("Ce nom est déjà prit\n")
+        return False
+    new_id = len(players) + 1
+    age = int(input("Quel age as-tu? "))
+    player = Player(new_id, name, age)
+    players.append(player)
+    database.insert_one("player", ["id", "name", "age"], (new_id, name, age))
+    print("Joueur créé\n")
+    return player
 
 
 def modify_player():
@@ -135,11 +134,10 @@ def connect_player():
     test = test_player(name)
     if not test:
         print("Ce compte n'existe pas\n")
-        return
-    else:
-        active_player = test
-        print(f"\nBonjour {active_player.name} !")
-        return active_player
+        return False
+    active_player = test
+    print(f"\nBonjour {active_player.name} !")
+    return active_player
 
 
 def logout():
@@ -172,12 +170,11 @@ def list_roles(player):
             if perso.role == role:
                 persos.append(perso)
         to_print = "Personnages : "
-        if persos:
-            to_print += persos[0].name
-            for index in range(1, len(persos)):
-                to_print += f", {persos[index].name}"
-        else:
+        if not persos:
             to_print += "Aucun"
+        to_print += persos[0].name
+        for index in range(1, len(persos)):
+            to_print += f", {persos[index].name}"
         print(to_print)
 
 
@@ -210,51 +207,50 @@ def fiche_perso(player, personnage):
     if not test_perso(player, personnage):
         print("Personnage non existant ou non possédé")
         return False
-    else:
-        sexe = "aucun"
-        if personnage.sexe == 'H':
-            sexe = "Homme"
-        if personnage.sexe == 'F':
-            sexe = "Femme"
-        print(
-            f"Fiche perso\n"
-            f"- Nom : {personnage.name}\n"
-            f"- Sexe : {sexe}\n"
-            f"- Age : {personnage.age} ans\n"
-            f"- Role : {personnage.role.label}\n"
-            f"PV={personnage.pv} PA={personnage.pa} PM={personnage.pm} Mana={personnage.mana}\n"
-        )
-        return personnage
+    sexe = "Aucun"
+    if personnage.sexe == 'H':
+        sexe = "Homme"
+    if personnage.sexe == 'F':
+        sexe = "Femme"
+    print(
+        f"Fiche perso\n"
+        f"- Nom : {personnage.name}\n"
+        f"- Sexe : {sexe}\n"
+        f"- Age : {personnage.age} ans\n"
+        f"- Role : {personnage.role.label}\n"
+        f"PV={personnage.pv} PA={personnage.pa} PM={personnage.pm} Mana={personnage.mana}\n"
+    )
+    return personnage
 
 
 def add_perso(player):
     name = input("Quel est le nom de votre personnage ? ")
-    role = search_role(input("Quel est le role de ton personnage ? "))
-    if not search_perso(player, name):
-        if role:
-            sexe = input("Votre personnage est-il un homme ou une femme (H/F) ? ")
-            if sexe == 'H' or sexe == 'F':
-                age = int(input("Quel est l'age de votre personnage ? "))
-                perso = Personnage(len(personnages) + 1, player, name, sexe, age, role)
-                personnages.append(perso)
-                player.personnages.append(perso)
-                role.personnages.append(perso)
-                if not active_player == default_player:
-                    database.insert_one(
-                        "personnage",
-                        ["id", "player_id", "role_id", "name", "sexe", "age", "pv", "pa", "pm", "mana"],
-                        (
-                            len(personnages) + 1, player.id, role.id, name, sexe, age, role.pv, role.pa, role.pm,
-                            role.mana)
-                    )
-                print("Personnage créé")
-                return perso
-            else:
-                print("Veuillez bien respecter la syntaxe demandée (H/F)\n")
-        else:
-            print("Ce role n'existe pas\n")
-    else:
+    if search_perso(player, name):
         print("Ce nom est déjà prit\n")
+        return False
+    role = search_role(input("Quel est le role de ton personnage ? "))
+    if not role:
+        print("Ce role n'existe pas\n")
+        return False
+    sexe = input("Votre personnage est-il un homme ou une femme (H/F) ? ")
+    if sexe != 'H' and sexe != 'F':
+        print("Veuillez bien respecter la syntaxe demandée (H/F)\n")
+        return False
+    age = int(input("Quel est l'age de votre personnage ? "))
+    perso = Personnage(len(personnages) + 1, player, name, sexe, age, role)
+    personnages.append(perso)
+    player.personnages.append(perso)
+    role.personnages.append(perso)
+    if not active_player == default_player:
+        database.insert_one(
+            "personnage",
+            ["id", "player_id", "role_id", "name", "sexe", "age", "pv", "pa", "pm", "mana"],
+            (
+                len(personnages) + 1, player.id, role.id, name, sexe, age, role.pv, role.pa, role.pm,
+                role.mana)
+            )
+    print("Personnage créé")
+    return perso
 
 
 def modify_perso(player, personnage):
@@ -294,25 +290,27 @@ def delete_perso(player, personnage):
         if not player == default_player:
             database.delete_by("personnage", "id = %s", (personnage.id,))
         print("Personnage supprimé\n")
+        return personnage
 
 
 def donate_perso(p_origin, p_target, personnage):
-    p_target = test_player(p_target)
-    if test_player(p_origin.name) and p_origin != default_player:
-        if p_target and p_target != default_player:
-            if personnage != default_perso and personnage in p_origin.personnages:
-                p_origin.personnages.remove(personnage)
-                personnage.player = dead_player
-                p_target.personnages.append(personnage)
-                personnage.player = p_target
-                database.update_one("personnage", ["player_id"], f"id = %s", (p_target.id, personnage.id))
-                print("Personnage donné avec succès")
-            else:
-                print("Vous ne pouvez pas donner ce personnage")
-        else:
-            print("Le joueur cible n'existe pas")
-    else:
+    if not test_player(p_origin.name) or p_origin == default_player:
         print("Le joueur donateur n'existe pas")
+        return False
+    p_target = test_player(p_target)
+    if not p_target or p_target == default_player:
+        print("Le joueur cible n'existe pas")
+        return False
+    if personnage == default_perso or personnage not in p_origin.personnages:
+        print("Ce personnage ne vous appartient pas")
+        return False
+    p_origin.personnages.remove(personnage)
+    personnage.player = dead_player
+    p_target.personnages.append(personnage)
+    personnage.player = p_target
+    database.update_one("personnage", ["player_id"], f"id = %s", (p_target.id, personnage.id))
+    print("Personnage donné avec succès")
+    return personnage
 
 
 def perso():
@@ -365,8 +363,6 @@ def perso():
             list_roles(active_player)
         if choice == 'j' and personnage_played != default_perso:
             run(personnage_played)
-        else:
-            bad_choice()
 
 
 def run(perso):
