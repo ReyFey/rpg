@@ -1,8 +1,10 @@
 from Person import *
+from Player import *
+from Role import *
 
 
 class Personnage(Person):
-    def __init__(self, id, player, name, sexe, age, role):
+    def __init__(self, id: int, player: Player, name: str, sexe: str, age: int, role: Role):
         super().__init__(id, name, age)
         self.player = player
         self.sexe = sexe
