@@ -96,37 +96,37 @@ def create_player():
         print("Ce nom est déjà prit\n")
 
 
-def modify_player(player):
+def modify_player():
     choice = -1
     while choice != 'q':
         choice = input("\nMODIFIER LE COMPTE\n"
-                       f"{player.name}, {player.age} ans\n"
+                       f"{active_player.name}, {active_player.age} ans\n"
                        "- Modifier le nom (n)\n"
                        "- Modifier l'age (a)\n"
                        "- Quitter (q)\n")
         if choice == 'n':
             name = input("Quel est votre nom ? ")
-            player.name = name
-            database.update_one("player", ["name"], f"id = %s", (name, player.id))
+            active_player.name = name
+            database.update_one("player", ["name"], f"id = %s", (name, active_player.id))
         if choice == 'a':
             age = int(input("Quel est votre age ? "))
-            player.age = age
-            database.update_one("player", ["age"], f"id = %s", (age, player.id))
+            active_player.age = age
+            database.update_one("player", ["age"], f"id = %s", (age, active_player.id))
 
 
-def delete_player(player):
+def delete_player():
     logout()
-    if not test_player(player.name):
+    if not test_player(active_player.name):
         print("Ce joueur n'existe pas\n")
         return False
     choice = input("\nEtes vous sur de vouloir le supprimer (o/n) ? \n")
     if choice == 'o':
-        for perso in player.personnages:
-            delete_perso(player, perso)
-        players.remove(player)
-        database.delete_by("player", "id = %s", (player.id,))
+        for perso in active_player.personnages:
+            delete_perso(active_player, perso)
+        players.remove(active_player)
+        database.delete_by("player", "id = %s", (active_player.id,))
         print("Joueur supprimé\n")
-        return player
+        return active_player
 
 
 def connect_player():
@@ -269,20 +269,20 @@ def modify_perso(player, personnage):
             if choice == 'n':
                 name = input("Quel est son nom ? ")
                 personnage.name = name
-                if not active_player == default_player:
+                if not player == default_player:
                     database.update_one("personnage", ["name"], f"id = %s", (name, personnage.id))
             if choice == 's':
                 sexe = input("Quel est son sexe (H/F) ? ")
                 if sexe == 'H' or sexe == 'F':
                     personnage.sexe = sexe
-                    if not active_player == default_player:
+                    if not player == default_player:
                         database.update_one("personnage", ["sexe"], f"id = %s", (sexe, personnage.id))
                 else:
                     print("Veuillez bien respecter la syntaxe demandée (H/F)\n")
             if choice == 'a':
                 age = int(input("Quel est son age ? "))
                 personnage.age = age
-                if not active_player == default_player:
+                if not player == default_player:
                     database.update_one("personnage", ["age"], f"id = %s", (age, personnage.id))
 
 
@@ -291,7 +291,7 @@ def delete_perso(player, personnage):
         personnages.remove(personnage)
         player.personnages.remove(personnage)
         personnage.player = dead_player
-        if not active_player == default_player:
+        if not player == default_player:
             database.delete_by("personnage", "id = %s", (personnage.id,))
         print("Personnage supprimé\n")
 
@@ -315,7 +315,7 @@ def donate_perso(p_origin, p_target, personnage):
         print("Le joueur donateur n'existe pas")
 
 
-def perso(player):
+def perso():
     global personnage_played
     choice = -1
     while choice != 'q':
@@ -335,44 +335,46 @@ def perso(player):
                        "- Jouer (j)\n"
                        "- Quitter (q)\n")
         if choice == 'c':
-            test = search_perso(player, input("Quel est le nom du personnage que vous voulez jouer ? "))
+            test = search_perso(active_player, input("Quel est le nom du personnage que vous voulez jouer ? "))
             if test:
                 personnage_played = test
             else:
                 print("Ce personnage n'existe pas ou ne vous appartient pas")
         if choice == 'a':
-            add_perso(player)
+            add_perso(active_player)
         if choice == 'v':
-            fiche_perso(player,
-                        search_perso(player, input("Quel est le nom du personnage que vous voulez voir ? ")))
+            fiche_perso(active_player,
+                        search_perso(active_player, input("Quel est le nom du personnage que vous voulez voir ? ")))
         if choice == 'd':
-            donate_perso(player, input("Quel est le nom du joueur à qui vous voulez donner un personnage ? "),
-                         search_perso(player, input("Quel est le nom du personnage que vous voulez donner ? ")))
+            donate_perso(active_player, input("Quel est le nom du joueur à qui vous voulez donner un personnage ? "),
+                         search_perso(active_player, input("Quel est le nom du personnage que vous voulez donner ? ")))
         if choice == 'm':
-            modify_perso(player, search_perso(player, input(
+            modify_perso(active_player, search_perso(active_player, input(
                 "Quel est le nom du personnage que vous voulez modifier ? ")))
         if choice == 's':
-            perso = search_perso(player, input("Quel est le nom du personnage que vous voulez supprimer ? "))
+            perso = search_perso(active_player, input("Quel est le nom du personnage que vous voulez supprimer ? "))
             if perso == personnage_played:
                 personnage_played = default_perso
-            if fiche_perso(player, perso):
+            if fiche_perso(active_player, perso):
                 choice = input("Etes vous sur de vouloir le supprimer (o/n) ? ")
                 if choice == 'o':
-                    delete_perso(player, perso)
+                    delete_perso(active_player, perso)
         if choice == 'p':
-            list_perso(player)
+            list_perso(active_player)
         if choice == 'r':
-            list_roles(player)
+            list_roles(active_player)
         if choice == 'j' and personnage_played != default_perso:
             run(personnage_played)
+        else:
+            bad_choice()
 
 
 def run(perso):
     print(f"Jouons, {perso.name}")
 
 
-def menu(player):
-    if player == default_player:
+def make_choice():
+    if active_player == default_player:
         return input("-----------MENU-----------\n"
                      "- Connecter un compte (c)\n"
                      "- Créer un nouveau compte (n)\n"
@@ -388,31 +390,30 @@ def menu(player):
                      "- Quitter (q)\n")
 
 
+def bad_choice():
+    print("Commande non reconnue\n")
+
+
+def false():
+    print("A la prochaine!")
+    return False
+
+
+def menu(choice):
+    return {
+       'c': connect_player,
+       'n': create_player,
+       'm': modify_player,
+       's': delete_player,
+       'l': list_players,
+       'j': perso,
+       'd': logout,
+       'q': false,
+    }.get(choice, bad_choice)()
+
+
 if __name__ == '__main__':
     fetch()
     while is_running:
-        choice = menu(active_player)
-
-        if choice == 'c':
-            connect_player()
-
-        if choice == 'n':
-            create_player()
-
-        if choice == 'm':
-            modify_player(active_player)
-
-        if choice == 's':
-            delete_player(active_player)
-
-        if choice == 'l':
-            list_players()
-
-        if choice == 'j':
-            perso(active_player)
-
-        if choice == 'd':
-            logout()
-
-        if choice == 'q':
+        if menu(make_choice()) is False:
             is_running = False
