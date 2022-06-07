@@ -2,7 +2,7 @@ import mysql.connector
 
 
 class Database:
-    def __init__(self, host, port, user, password, name):
+    def __init__(self, host: str, port: int, user: str, password: str, name: str):
         self.host = host
         self.port = port
         self.user = user
@@ -18,11 +18,11 @@ class Database:
         self.cursor = self.connector.cursor()
         self.tables = self.tables()
 
-    def tables(self):
+    def tables(self) -> list[tuple]:
         self.cursor.execute("SHOW TABLES;")
         return self.cursor.fetchall()
 
-    def select(self, table, properties):
+    def select(self, table: str, properties: list[str]) -> list[tuple]:
         sql = f"SELECT {properties[0]}"
         for index in range(1, len(properties)):
             sql += f", {properties[index]}"
@@ -30,7 +30,7 @@ class Database:
         self.cursor.execute(sql)
         return self.cursor.fetchall()
 
-    def select_by(self, table, properties, conditions, values):
+    def select_by(self, table: str, properties: list[str], conditions: str, values: tuple) -> list[tuple]:
         sql = f"SELECT {properties[0]}"
         for index in range(1, len(properties)):
             sql += f", {properties[index]}"
@@ -38,7 +38,7 @@ class Database:
         self.cursor.execute(sql, values)
         return self.cursor.fetchall()
 
-    def sql_insert(self, table, properties, nb_values):
+    def sql_insert(self, table: str, properties: list[str], nb_values: int) -> str:
         sql = f"INSERT INTO {self.name}.{table} ({properties[0]}"
         for index in range(1, len(properties)):
             sql += f", {properties[index]}"
@@ -48,15 +48,15 @@ class Database:
         sql += ");"
         return sql
 
-    def insert_one(self, table, properties, values):
+    def insert_one(self, table: str, properties: list[str], values: tuple):
         self.cursor.execute(self.sql_insert(table, properties, len(values)), values)
         self.connector.commit()
 
-    def insert_many(self, table, properties, values):
+    def insert_many(self, table: str, properties: list[str], values: list[tuple]):
         self.cursor.executemany(self.sql_insert(table, properties, len(values)), values)
         self.connector.commit()
 
-    def update_one(self, table, properties, conditions, values):
+    def update_one(self, table: str, properties: list[str], conditions: str, values: tuple):
         sql = f"UPDATE {self.name}.{table} SET {properties[0]} = %s"
         for index in range(1, len(properties)):
             sql += f", {properties[1]} = %s"
@@ -64,7 +64,7 @@ class Database:
         self.cursor.execute(sql, values)
         self.connector.commit()
 
-    def update_many(self, table, properties, conditions, values):
+    def update_many(self, table: str, properties: list[str], conditions: str, values: list[tuple]):
         sql = f"UPDATE {self.name}.{table} SET {properties[0]} = %s"
         for index in range(1, len(properties)):
             sql += f", {properties[1]} = %s"
@@ -72,15 +72,15 @@ class Database:
         self.cursor.executemany(sql, values)
         self.connector.commit()
 
-    def delete_by(self, table, conditions, values):
+    def delete_by(self, table: str, conditions: str, values: tuple):
         self.cursor.execute(f"DELETE FROM {self.name}.{table} WHERE {conditions};", values)
         self.connector.commit()
 
-    def delete_many_by(self, table, conditions, values):
+    def delete_many_by(self, table: str, conditions: str, values: list[tuple]):
         self.cursor.executemany(f"DELETE FROM {self.name}.{table} WHERE {conditions};", values)
         self.connector.commit()
 
-    def clear_table(self, table):
+    def clear_table(self, table: str):
         self.cursor.execute(f"TRUNCATE TABLE {self.name}.{table};")
         self.connector.commit()
 
