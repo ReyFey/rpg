@@ -1,4 +1,6 @@
 import json
+from typing import Optional
+
 from Database import *
 from Character import *
 from Role import *
@@ -83,19 +85,21 @@ def list_players():
     print("")
 
 
-def test_player(name: str) -> Player:
-    player = default_player
-    for all_player in players:
-        if all_player.name == name:
-            player = all_player
-            break
-    return player
+def find_player(name: str) -> Optional[Player]:
+    for player in players:
+        if player.name == name:
+            return player
+    return None
+
+
+def test_default(player: Player) -> bool:
+    return player == default_player
 
 
 def create_player() -> Player:
     global insert_counter_players
     name = input("Quel est ton nom ? ")
-    if test_player(name):
+    if find_player(name) is not None:
         print("Ce nom est déjà prit\n")
         return default_player
     age = int(input("Quel age as-tu? "))
@@ -127,7 +131,7 @@ def modify_player():
 
 
 def delete_player() -> bool:
-    if not test_player(active_player.name):
+    if find_player(active_player.name) is None:
         print("Ce joueur n'existe pas\n")
         return False
     choice = input("\nEtes vous sur de vouloir le supprimer (o/n) ? \n")
@@ -144,8 +148,8 @@ def delete_player() -> bool:
 def connect_player() -> Player:
     global active_player
     name = input("Quel est votre nom ? ")
-    test = test_player(name)
-    if not test:
+    test = find_player(name)
+    if test is None:
         print("Ce compte n'existe pas\n")
         return default_player
     active_player = test
@@ -158,7 +162,7 @@ def logout():
     global character_played
     active_player = default_player
     character_played = default_char
-    print("Au revoir !")
+    print("Au revoir !\n")
 
 
 # Roles
@@ -313,11 +317,11 @@ def delete_char(player: Player, character: Character) -> Character:
 
 def donate_char(p_origin: Player, p_target: str, character: Character) -> Character:
     global character_played
-    if not test_player(p_origin.name):
+    if find_player(p_origin.name) is None and not test_default(p_origin):
         print("Le joueur donateur n'existe pas")
         return default_char
-    p_target = test_player(p_target)
-    if not p_target or p_target == default_player:
+    p_target = find_player(p_target)
+    if p_target is None:
         print("Le joueur cible n'existe pas")
         return default_char
     if character == default_char or character not in p_origin.characters:
@@ -345,7 +349,10 @@ def char():
     global character_played
     choice = -1
     while choice != 'q':
-        print(f"\n[{active_player.name}]")
+        if test_default(active_player):
+            print("\n[Non connecté]")
+        else:
+            print(f"\n[{active_player.name}]")
         if character_played == default_char:
             print("Veuillez choisir un personnage pour jouer")
         else:
