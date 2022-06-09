@@ -42,8 +42,8 @@ class Database:
         sql = f"INSERT INTO {self.name}.{table} ({properties[0]}"
         for index in range(1, len(properties)):
             sql += f", {properties[index]}"
-        sql += f") VALUES (%s"
-        for index in range(1, nb_values):
+        sql += ") VALUES (%s"
+        for _ in range(1, nb_values):
             sql += ", %s"
         sql += ");"
         return sql
@@ -58,7 +58,7 @@ class Database:
 
     def update_one(self, table: str, properties: list[str], conditions: str, values: tuple):
         sql = f"UPDATE {self.name}.{table} SET {properties[0]} = %s"
-        for index in range(1, len(properties)):
+        for _ in range(1, len(properties)):
             sql += f", {properties[1]} = %s"
         sql += f" WHERE {conditions};"
         self.cursor.execute(sql, values)
@@ -66,7 +66,7 @@ class Database:
 
     def update_many(self, table: str, properties: list[str], conditions: str, values: list[tuple]):
         sql = f"UPDATE {self.name}.{table} SET {properties[0]} = %s"
-        for index in range(1, len(properties)):
+        for _ in range(1, len(properties)):
             sql += f", {properties[1]} = %s"
         sql += f" WHERE {conditions};"
         self.cursor.executemany(sql, values)

@@ -48,15 +48,13 @@ def fetch():
             players.append(Player(dbuser[0], dbuser[1], dbuser[2]))
         for dbchar in database.select("character", ["id", "name", "sexe", "age", "role_id",
                                                     "player_id", "pv", "pa", "pm", "mana"]):
-            role_id = dbchar[4]
             _role = default_role
-            if role_id:
+            if role_id := dbchar[4]:
                 for role in roles:
                     if role.id == role_id:
                         _role = role
             user = dead_player
-            player_id = dbchar[5]
-            if player_id:
+            if player_id := dbchar[5]:
                 for player in players:
                     if player.id == player_id:
                         user = player
@@ -123,11 +121,11 @@ def modify_player():
         if choice == 'n':
             name = input("Quel est votre nom ? ")
             active_player.name = name
-            database.update_one("player", ["name"], f"id = %s", (name, active_player.id))
+            database.update_one("player", ["name"], "id = %s", (name, active_player.id))
         if choice == 'a':
             age = int(input("Quel est votre age ? "))
             active_player.age = age
-            database.update_one("player", ["age"], f"id = %s", (age, active_player.id))
+            database.update_one("player", ["age"], "id = %s", (age, active_player.id))
 
 
 def delete_player() -> bool:
@@ -182,10 +180,7 @@ def list_roles(player: Player):
               f"{role.pa} points d'attaque (PA)\n"
               f"{role.pm} points de mouvement (PM)\n"
               f"{role.mana} points de magie (Mana)")
-        chars = []
-        for own_char in player.characters:
-            if own_char.role == role:
-                chars.append(own_char)
+        chars = [own_char for own_char in player.characters if own_char.role == role]
         to_print = "Personnages : "
         if chars:
             to_print += chars[0].name
@@ -210,9 +205,8 @@ def list_char(player: Player):
 def test_char(player: Player, character: Character) -> Character:
     if not character or character not in characters:
         return default_char
-    if character.player == player:
-        if character in player.characters:
-            return character
+    if character.player == player and character in player.characters:
+        return character
 
 
 def search_char(player: Player, name: str) -> Character:
@@ -228,7 +222,7 @@ def fiche_char(player: Player, character: Character) -> Character:
     sexe = "Aucun"
     if character.sexe == 'H':
         sexe = "Homme"
-    if character.sexe == 'F':
+    elif character.sexe == 'F':
         sexe = "Femme"
     print(
         f"Fiche perso\n"
@@ -252,7 +246,7 @@ def add_char(player: Player) -> Character:
         print("Ce role n'existe pas\n")
         return default_char
     sexe = input("Votre personnage est-il un homme ou une femme (H/F) ? ")
-    if sexe != 'H' and sexe != 'F':
+    if sexe not in ['H', 'F']:
         print("Veuillez bien respecter la syntaxe demandée (H/F)\n")
         return default_char
     age = int(input("Quel est l'age de votre personnage ? "))
@@ -268,38 +262,39 @@ def add_char(player: Player) -> Character:
             ["player_id", "role_id", "name", "sexe", "age", "pv", "pa", "pm", "mana"],
             (
                 player.id, role.id, name, sexe, age, role.pv, role.pa, role.pm, role.mana)
-            )
+        )
     print("Personnage créé")
     return new_char
 
 
 def modify_char(player: Player, character: Character):
-    if fiche_char(player, character):
-        choice = -1
-        while choice != 'b':
-            choice = input("\nMODIFIER LE PERSONNAGE\n"
-                           "- Modifier le nom (n)\n"
-                           "- Modifier le sexe (s)\n"
-                           "- Modifier l'age (a)\n"
-                           "- Retour (b)\n")
-            if choice == 'n':
-                name = input("Quel est son nom ? ")
-                character.name = name
-                if not player == default_player:
-                    database.update_one("character", ["name"], "id = %s", (name, character.id))
-            if choice == 's':
-                sexe = input("Quel est son sexe (H/F) ? ")
-                if sexe == 'H' or sexe == 'F':
-                    character.sexe = sexe
-                    if not player == default_player:
-                        database.update_one("character", ["sexe"], "id = %s", (sexe, character.id))
-                else:
-                    print("Veuillez bien respecter la syntaxe demandée (H/F)\n")
-            if choice == 'a':
-                age = int(input("Quel est son age ? "))
-                character.age = age
-                if not player == default_player:
-                    database.update_one("character", ["age"], "id = %s", (age, character.id))
+    if not fiche_char(player, character):
+        return
+    choice = -1
+    while choice != 'b':
+        choice = input("\nMODIFIER LE PERSONNAGE\n"
+                       "- Modifier le nom (n)\n"
+                       "- Modifier le sexe (s)\n"
+                       "- Modifier l'age (a)\n"
+                       "- Retour (b)\n")
+        if choice == 'n':
+            name = input("Quel est son nom ? ")
+            character.name = name
+            if player != default_player:
+                database.update_one("character", ["name"], "id = %s", (name, character.id))
+        if choice == 's':
+            sexe = input("Quel est son sexe (H/F) ? ")
+            if sexe in ['H', 'F']:
+                character.sexe = sexe
+                if player != default_player:
+                    database.update_one("character", ["sexe"], "id = %s", (sexe, character.id))
+            else:
+                print("Veuillez bien respecter la syntaxe demandée (H/F)\n")
+        if choice == 'a':
+            age = int(input("Quel est son age ? "))
+            character.age = age
+            if player != default_player:
+                database.update_one("character", ["age"], "id = %s", (age, character.id))
 
 
 def delete_char(player: Player, character: Character) -> Character:
@@ -309,7 +304,7 @@ def delete_char(player: Player, character: Character) -> Character:
     characters.remove(character)
     player.characters.remove(character)
     character.player = dead_player
-    if not player == default_player:
+    if player != default_player:
         database.delete_by("character", "id = %s", (character.id,))
     print("Personnage supprimé")
     return character
@@ -340,7 +335,7 @@ def donate_char(p_origin: Player, p_target: str, character: Character) -> Charac
                              character.age, character.pv, character.pa, character.pm, character.mana)
                             )
     else:
-        database.update_one("character", ["player_id"], f"id = %s", (p_target.id, character.id))
+        database.update_one("character", ["player_id"], "id = %s", (p_target.id, character.id))
     print("Personnage donné avec succès")
     return character
 
@@ -369,8 +364,12 @@ def char():
                        "- Jouer (j)\n"
                        "- Quitter (q)\n")
         if choice == 'c':
-            test = search_char(active_player, input("Quel est le nom du personnage que vous voulez jouer ? "))
-            if test:
+            if test := search_char(
+                    active_player,
+                    input(
+                        "Quel est le nom du personnage que vous voulez jouer ? "
+                    ),
+            ):
                 character_played = test
             else:
                 print("Ce personnage n'existe pas ou ne vous appartient pas")
@@ -436,14 +435,14 @@ def false() -> bool:
 
 def menu(choice):
     return {
-       'c': connect_player,
-       'n': create_player,
-       'm': modify_player,
-       's': delete_player,
-       'l': list_players,
-       'j': char,
-       'd': logout,
-       'q': false,
+        'c': connect_player,
+        'n': create_player,
+        'm': modify_player,
+        's': delete_player,
+        'l': list_players,
+        'j': char,
+        'd': logout,
+        'q': false,
     }.get(choice, bad_choice)()
 
 
