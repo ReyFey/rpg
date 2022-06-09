@@ -1,16 +1,43 @@
 # RPG
-## A role play game
+A role play game
 
-1. Run `seeder.sql` to generate database
-2. Run `data.sql` if you want testing data
-3. Update `database.json` with corrects parameters to your server
-```json
-{
-  "host":"localhost",
-  "port": 3306,
-  "user": "player",
-  "password": "pl@y3r",
-  "name": "rpg"
-}
-```
-4. Finally, run `main.py` and enjoy :)
+## Install
+
+1. Clone the repository
+   ```bash
+   git clone https://github.com/Reyfey/rpg.git
+   ```
+
+2. Run `seeder.sql` to generate database
+   ```bash
+   mysql -u [user] -p[password] <  db/seeder.sql
+   ```
+
+3. Run `data.sql` if you want testing data
+   ```bash
+   mysql -u [user] -p[password] <  db/data.sql
+   ```
+
+4. Copy the example configuration file
+    ```bash
+    cp database.example.json database.json
+    ```
+    and replace the parameters to connect to your database
+
+
+5. (Optional) Create virtual environment for python
+    ```bash
+    python -m venv venv
+    chmod +x venv/bin/activate
+    ./venv/bin/activate
+    ```
+
+6. Install the dependencies
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+7. Finally, run and enjoy :)
+    ```bash
+    python main.py
+    ```
