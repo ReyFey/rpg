@@ -268,8 +268,13 @@ def add_char(player: Player) -> Character:
 
 
 def modify_char(player: Player, character: Character):
+    if not character:
+        print("Personnage non existant ou non possédé")
+        return
+
     if not fiche_char(player, character):
         return
+
     choice = -1
     while choice != 'b':
         choice = input("\nMODIFIER LE PERSONNAGE\n"
@@ -383,11 +388,20 @@ def char():
                         input("Quel est le nom du joueur à qui vous voulez donner un personnage ? "),
                         search_char(active_player, input("Quel est le nom du personnage que vous voulez donner ? ")))
         if choice == 'm':
-            modify_char(active_player, search_char(active_player, input(
-                "Quel est le nom du personnage que vous voulez modifier ? ")))
+            modify_char(
+                active_player,
+                search_char(active_player, input("Quel est le nom du personnage que vous voulez modifier ? "))
+            )
         if choice == 's':
-            char_to_delete = search_char(active_player,
-                                         input("Quel est le nom du personnage que vous voulez supprimer ? "))
+            char_to_delete = search_char(
+                active_player,
+                input("Quel est le nom du personnage que vous voulez supprimer ? ")
+            )
+
+            if char_to_delete is None:
+                print("Personnage introuvable")
+                continue
+
             if char_to_delete == character_played:
                 character_played = default_char
             if fiche_char(active_player, char_to_delete):
